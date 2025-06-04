@@ -1,0 +1,128 @@
+---
+title: "Import dengue, zika, chikungunya events from SIM and SINAN"
+format: html
+---
+
+## Packages
+
+```{r}
+#| message: false
+library(dplyr)
+library(readr)
+library(lubridate)
+library(duckdb)
+library(DBI)
+library(sessioninfo)
+```
+
+## Database connection
+
+```{r}
+con <- dbConnect(duckdb(), "../database/eventos.duckdb")
+```
+
+## Data import
+
+```{r}
+cases_file <- "../dados/tb_deng_chagas_zik_chko.csv"
+```
+
+```{r}
+tmp <- read_csv2(file = cases_file) |>
+  mutate(
+    sex = case_match(
+      sex,
+      "M" ~ "1",
+      "F" ~ "2",
+      .default = sex
+    )
+  ) |>
+  mutate(
+    geocod = as.numeric(geocod),
+    year = as.numeric(year),
+    month = as.numeric(month),identity via certificates. Firefox does not trust this site because it uses a certificate that is not valid for pr
+if (dbExistsTable(con, "dengue_sim")) dbRemoveTable(con, "dengue_sim")
+
+dbWriteTable(
+  conn = con,
+  name = "dengue_sim",
+  value = tmp |>
+    filter(health == "Dengue", source == "SIM") |>
+    select(-health, -source)
+)
+```
+
+### Dengue (SINAN)
+
+```{r}
+if (dbExistsTable(con, "dengue_sinan")) dbRemoveTable(con, "dengue_sinan")
+
+dbWriteTable(
+  conn = con,
+  name = "dengue_sinan",
+  value = tmp |>
+    filter(health == "Dengue", source == "SINAN") |>
+    select(-health, -source)
+)
+```
+
+### Zika (SINAN)
+
+```{r}
+if (dbExistsTable(con, "zika_sinan")) dbRemoveTable(con, "zika_sinan")
+
+dbWriteTable(
+  conn = con,
+  name = "zika_sinan",
+  value = tmp |>
+    filter(health == "Zika", source == "SINAN") |>
+    select(-health, -source)
+)
+```
+
+### Chikungunya (SINAN)
+
+```{r}
+if (dbExistsTable(con, "chikungunya_sinan"))
+  dbRemoveTable(con, "chikungunya_sinan")
+
+dbWriteTable(
+  conn = con,
+  name = "chikungunya_sinan",
+  value = tmp |>
+    filter(health == "Chikungunya", source == "SINAN") |>
+    select(-health, -source)
+)
+```
+
+### Chagas (SINAN)
+
+```{r}
+if (dbExistsTable(con, "chagas_sinan")) dbRemoveTable(con, "chagas_sinan")
+
+dbWriteTable(
+  conn = con,
+  name = "chagas_sinan",
+  value = tmp |>
+    filter(health == "Chagas", source == "SINAN") |>
+    select(-health, -source)
+)
+```
+
+## Tables conference
+
+```{r}
+dbListTables(con)
+```
+
+## Database disconnect
+
+```{r}
+dbDisconnect(con)
+```
+
+## Session info
+
+```{r}
+session_info()
+```
