@@ -10,7 +10,7 @@ format: html
 library(dplyr)
 library(readr)
 library(lubridate)
-library(duckdb)
+library(RPostgres)
 library(DBI)
 library(brpop)
 library(sessioninfo)
@@ -19,7 +19,15 @@ library(sessioninfo)
 ## Database connection
 
 ```{r}
-con <- dbConnect(duckdb(), "../database/eventos.duckdb")
+con <- dbConnect(
+  drv = Postgres(),
+  host = Sys.getenv("psql_local_host"),
+  dbname = Sys.getenv("psql_db"),
+  user = Sys.getenv("psql_local_user"),
+  password = Sys.getenv("psql_local_psw")
+)
+
+schema <- Sys.getenv("psql_schema")
 ```
 
 ## Data import
@@ -45,7 +53,7 @@ tmp <- read_csv2(file = cases_file) |>
     month = as.numeric(month),
     epiweek = as.numeric(epiweek),
     date = as.Date(date),
-    health = as.character(epiweek),
+    health = as.character(health),
     sex = as.numeric(sex),
     age = as.numeric(age),
     source = as.character(source)
@@ -65,14 +73,18 @@ tmp <- tmp |>
   relocate(c(geocoduf, geocodrs), .before = geocodmu)
 ```
 
+## Write data
+
 ### Dengue (SIM)
 
 ```{r}
-if (dbExistsTable(con, "dengue_sim")) dbRemoveTable(con, "dengue_sim")
+if (dbExistsTable(con, Id(schema = schema, table = "dengue_sim"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "dengue_sim"))
+}
 
 dbWriteTable(
   conn = con,
-  name = "dengue_sim",
+  name = Id(schema = schema, table = "dengue_sim"),
   value = tmp |>
     filter(health == "Dengue", source == "SIM") |>
     select(-health, -source)
@@ -82,11 +94,13 @@ dbWriteTable(
 ### Dengue (SINAN)
 
 ```{r}
-if (dbExistsTable(con, "dengue_sinan")) dbRemoveTable(con, "dengue_sinan")
+if (dbExistsTable(con, Id(schema = schema, table = "dengue_sinan"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "dengue_sinan"))
+}
 
 dbWriteTable(
   conn = con,
-  name = "dengue_sinan",
+  name = Id(schema = schema, table = "dengue_sinan"),
   value = tmp |>
     filter(health == "Dengue", source == "SINAN") |>
     select(-health, -source)
@@ -96,11 +110,13 @@ dbWriteTable(
 ### Zika (SINAN)
 
 ```{r}
-if (dbExistsTable(con, "zika_sinan")) dbRemoveTable(con, "zika_sinan")
+if (dbExistsTable(con, Id(schema = schema, table = "zika_sinan"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "zika_sinan"))
+}
 
 dbWriteTable(
   conn = con,
-  name = "zika_sinan",
+  name = Id(schema = schema, table = "zika_sinan"),
   value = tmp |>
     filter(health == "Zika", source == "SINAN") |>
     select(-health, -source)
@@ -110,12 +126,13 @@ dbWriteTable(
 ### Chikungunya (SINAN)
 
 ```{r}
-if (dbExistsTable(con, "chikungunya_sinan"))
-  dbRemoveTable(con, "chikungunya_sinan")
+if (dbExistsTable(con, Id(schema = schema, table = "chikungunya_sinan"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "chikungunya_sinan"))
+}
 
 dbWriteTable(
   conn = con,
-  name = "chikungunya_sinan",
+  name = Id(schema = schema, table = "chikungunya_sinan"),
   value = tmp |>
     filter(health == "Chikungunya", source == "SINAN") |>
     select(-health, -source)
@@ -125,11 +142,13 @@ dbWriteTable(
 ### Chagas (SINAN)
 
 ```{r}
-if (dbExistsTable(con, "chagas_sinan")) dbRemoveTable(con, "chagas_sinan")
+if (dbExistsTable(con, Id(schema = schema, table = "chagas_sinan"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "chagas_sinan"))
+}
 
 dbWriteTable(
   conn = con,
-  name = "chagas_sinan",
+  name = Id(schema = schema, table = "chagas_sinan"),
   value = tmp |>
     filter(health == "Chagas", source == "SINAN") |>
     select(-health, -source)
