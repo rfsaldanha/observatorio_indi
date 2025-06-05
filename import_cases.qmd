@@ -54,17 +54,16 @@ tmp <- read_csv2(file = cases_file) |>
 
 ## Add geo codes
 
-For UF and health regions.
+Add UF and health regions.
 
 ```{r}
-tmp2 <- tmp |>
+tmp <- tmp |>
   rename(geocodmu = geocod) |>
   mutate(geocoduf = as.numeric(substr(geocodmu, 0, 2))) |>
   left_join(mun_reg_saude_449, by = c("geocodmu" = "code_muni")) |>
   rename(geocodrs = codi_reg_saude) |>
   relocate(c(geocoduf, geocodrs), .before = geocodmu)
 ```
-
 
 ### Dengue (SIM)
 
