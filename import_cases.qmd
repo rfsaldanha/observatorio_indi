@@ -12,6 +12,7 @@ library(readr)
 library(lubridate)
 library(duckdb)
 library(DBI)
+library(brpop)
 library(sessioninfo)
 ```
 
@@ -34,13 +35,40 @@ tmp <- read_csv2(file = cases_file) |>
       sex,
       "M" ~ "1",
       "F" ~ "2",
+      "I" ~ "0",
       .default = sex
     )
   ) |>
   mutate(
     geocod = as.numeric(geocod),
     year = as.numeric(year),
-    month = as.numeric(month),identity via certificates. Firefox does not trust this site because it uses a certificate that is not valid for pr
+    month = as.numeric(month),
+    epiweek = as.numeric(epiweek),
+    date = as.Date(date),
+    health = as.character(epiweek),
+    sex = as.numeric(sex),
+    age = as.numeric(age),
+    source = as.character(source)
+  )
+```
+
+## Add geo codes
+
+For UF and health regions.
+
+```{r}
+tmp2 <- tmp |>
+  rename(geocodmu = geocod) |>
+  mutate(geocoduf = as.numeric(substr(geocodmu, 0, 2))) |>
+  left_join(mun_reg_saude_449, by = c("geocodmu" = "code_muni")) |>
+  rename(geocodrs = codi_reg_saude) |>
+  relocate(c(geocoduf, geocodrs), .before = geocodmu)
+```
+
+
+### Dengue (SIM)
+
+```{r}
 if (dbExistsTable(con, "dengue_sim")) dbRemoveTable(con, "dengue_sim")
 
 dbWriteTable(
