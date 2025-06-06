@@ -1,0 +1,353 @@
+---
+title: "Import dengue, zika, chikungunya events from SIM and SINAN"
+format:
+  html:
+    embed-resources: true
+---
+
+## Packages
+
+```{r}
+#| message: false
+library(dplyr)
+library(readr)
+library(lubridate)
+library(RPostgres)
+library(DBI)
+library(brpop)
+library(sessioninfo)
+```
+
+## Database connection
+
+```{r}
+con <- dbConnect(
+  drv = Postgres(),
+  host = Sys.getenv("psql_local_host"),
+  dbname = Sys.getenv("psql_db"),
+  user = Sys.getenv("psql_local_user"),
+  password = Sys.getenv("psql_local_psw")
+)
+
+schema <- Sys.getenv("psql_schema")
+```
+
+## SIM Dengue
+
+```{r}
+tmp_dengue_sim <- read_csv2(file = "../dados/vanderlei/tb_dengue_sim_.csv") |>
+  mutate(
+    sex = as.character(sex),
+    sex = case_match(
+      sex,
+      "M" ~ "1",
+      "F" ~ "2",
+      "I" ~ "0",
+      .default = sex
+    )
+  ) |>
+  mutate(
+    geocod = as.numeric(geocod),
+    year = as.numeric(year),
+    month = as.numeric(month),
+    epiweek = as.numeric(epiweek),
+    date = as.Date(date),
+    health = as.character(health),
+    sex = as.numeric(sex),
+    age = as.numeric(age),
+    source = as.character(source)
+  ) |>
+  rename(geocodmu = geocod) |>
+  mutate(geocoduf = as.numeric(substr(geocodmu, 0, 2))) |>
+  left_join(mun_reg_saude_449, by = c("geocodmu" = "code_muni")) |>
+  rename(geocodrs = codi_reg_saude) |>
+  relocate(c(geocoduf, geocodrs), .before = geocodmu)
+```
+
+```{r}
+if (dbExistsTable(con, Id(schema = schema, table = "sim_dengue"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "sim_dengue"))
+}
+
+dbWriteTable(
+  conn = con,
+  name = Id(schema = schema, table = "sim_dengue"),
+  value = tmp_dengue_sim
+)
+
+tbl(con, Id(schema = schema, table = "sim_dengue")) |> tally()
+```
+
+## SINAN Dengue
+
+```{r}
+tmp_dengue_sinan <- read_csv2(
+  file = "../dados/vanderlei/tb_dengue_0024_dt.csv"
+) |>
+  mutate(
+    sex = as.character(sex),
+    sex = case_match(
+      sex,
+      "M" ~ "1",
+      "F" ~ "2",
+      "I" ~ "0",
+      .default = sex
+    )
+  ) |>
+  mutate(
+    geocod = as.numeric(geocod),
+    year = as.numeric(year),
+    month = as.numeric(month),
+    epiweek = as.numeric(epiweek),
+    date = as.Date(date),
+    health = as.character(health),
+    sex = as.numeric(sex),
+    age = as.numeric(age),
+    source = as.character(source)
+  ) |>
+  rename(geocodmu = geocod) |>
+  mutate(geocoduf = as.numeric(substr(geocodmu, 0, 2))) |>
+  left_join(mun_reg_saude_449, by = c("geocodmu" = "code_muni")) |>
+  rename(geocodrs = codi_reg_saude) |>
+  relocate(c(geocoduf, geocodrs), .before = geocodmu)
+```
+
+```{r}
+if (dbExistsTable(con, Id(schema = schema, table = "sinan_dengue"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "sinan_dengue"))
+}
+
+dbWriteTable(
+  conn = con,
+  name = Id(schema = schema, table = "sinan_dengue"),
+  value = tmp_dengue_sinan
+)
+
+tbl(con, Id(schema = schema, table = "sinan_dengue")) |> tally()
+```
+
+## SINAN Zika
+
+```{r}
+tmp_zika_sinan <- read_csv2(
+  file = "../dados/vanderlei/tb_zika_0024_dt(in).csv",
+  col_types = cols(
+    geocod = col_double(),
+    year = col_double(),
+    month = col_double(),
+    epiweek = col_double(),
+    date = col_date(format = "%d/%M/%Y"),
+    health = col_character(),
+    sex = col_character(),
+    age = col_double(),
+    source = col_character()
+  )
+) |>
+  mutate(
+    sex = as.character(sex),
+    sex = case_match(
+      sex,
+      "M" ~ "1",
+      "F" ~ "2",
+      "I" ~ "0",
+      .default = sex
+    )
+  ) |>
+  mutate(
+    geocod = as.numeric(geocod),
+    year = as.numeric(year),
+    month = as.numeric(month),
+    epiweek = as.numeric(epiweek),
+    date = as.Date(date),
+    health = as.character(health),
+    sex = as.numeric(sex),
+    age = as.numeric(age),
+    source = as.character(source)
+  ) |>
+  rename(geocodmu = geocod) |>
+  mutate(geocoduf = as.numeric(substr(geocodmu, 0, 2))) |>
+  left_join(mun_reg_saude_449, by = c("geocodmu" = "code_muni")) |>
+  rename(geocodrs = codi_reg_saude) |>
+  relocate(c(geocoduf, geocodrs), .before = geocodmu)
+```
+
+```{r}
+if (dbExistsTable(con, Id(schema = schema, table = "sinan_zika"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "sinan_zika"))
+}
+
+dbWriteTable(
+  conn = con,
+  name = Id(schema = schema, table = "sinan_zika"),
+  value = tmp_zika_sinan
+)
+
+tbl(con, Id(schema = schema, table = "sinan_zika")) |> tally()
+```
+
+## SINAN Chikungunya
+
+```{r}
+tmp_chikungunya_sinan <- read_csv2(
+  file = "../dados/vanderlei/tb_chiku_0024_dt(in).csv",
+  col_types = cols(
+    geocod = col_double(),
+    year = col_double(),
+    month = col_double(),
+    epiweek = col_double(),
+    date = col_date(format = "%d/%M/%Y"),
+    health = col_character(),
+    sex = col_character(),
+    age = col_double(),
+    source = col_character()
+  )
+) |>
+  mutate(
+    sex = as.character(sex),
+    sex = case_match(
+      sex,
+      "M" ~ "1",
+      "F" ~ "2",
+      "I" ~ "0",
+      .default = sex
+    )
+  ) |>
+  mutate(
+    geocod = as.numeric(geocod),
+    year = as.numeric(year),
+    month = as.numeric(month),
+    epiweek = as.numeric(epiweek),
+    date = as.Date(date),
+    health = as.character(health),
+    sex = as.numeric(sex),
+    age = as.numeric(age),
+    source = as.character(source)
+  ) |>
+  rename(geocodmu = geocod) |>
+  mutate(geocoduf = as.numeric(substr(geocodmu, 0, 2))) |>
+  left_join(mun_reg_saude_449, by = c("geocodmu" = "code_muni")) |>
+  rename(geocodrs = codi_reg_saude) |>
+  relocate(c(geocoduf, geocodrs), .before = geocodmu)
+```
+
+```{r}
+if (dbExistsTable(con, Id(schema = schema, table = "sinan_chikungunya"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "sinan_chikungunya"))
+}
+
+dbWriteTable(
+  conn = con,
+  name = Id(schema = schema, table = "sinan_chikungunya"),
+  value = tmp_chikungunya_sinan
+)
+
+tbl(con, Id(schema = schema, table = "sinan_chikungunya")) |> tally()
+```
+
+## SINAN Febre Amarela
+
+```{r}
+tmp_febre_amarela_sinan <- read_csv2(
+  file = "../dados/vanderlei/tb_fa_0024_dt.csv"
+) |>
+  mutate(
+    sex = as.character(sex),
+    sex = case_match(
+      sex,
+      "M" ~ "1",
+      "F" ~ "2",
+      "I" ~ "0",
+      .default = sex
+    )
+  ) |>
+  mutate(
+    geocod = as.numeric(geocod),
+    year = as.numeric(year),
+    month = as.numeric(month),
+    epiweek = as.numeric(epiweek),
+    date = as.Date(date),
+    health = as.character(health),
+    sex = as.numeric(sex),
+    age = as.numeric(age),
+    source = as.character(source)
+  ) |>
+  rename(geocodmu = geocod) |>
+  mutate(geocoduf = as.numeric(substr(geocodmu, 0, 2))) |>
+  left_join(mun_reg_saude_449, by = c("geocodmu" = "code_muni")) |>
+  rename(geocodrs = codi_reg_saude) |>
+  relocate(c(geocoduf, geocodrs), .before = geocodmu)
+```
+
+```{r}
+if (dbExistsTable(con, Id(schema = schema, table = "sinan_febre_amarela"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "sinan_febre_amarela"))
+}
+
+dbWriteTable(
+  conn = con,
+  name = Id(schema = schema, table = "sinan_febre_amarela"),
+  value = tmp_febre_amarela_sinan
+)
+
+tbl(con, Id(schema = schema, table = "sinan_febre_amarela")) |> tally()
+```
+
+## SINAN Chagas
+
+```{r}
+tmp_chagas_sinan <- read_csv2(
+  file = "../dados/vanderlei/tb_chagas_0023_dt.csv"
+) |>
+  mutate(
+    sex = as.character(sex),
+    sex = case_match(
+      sex,
+      "M" ~ "1",
+      "F" ~ "2",
+      "I" ~ "0",
+      .default = sex
+    )
+  ) |>
+  mutate(
+    geocod = as.numeric(geocod),
+    year = as.numeric(year),
+    month = as.numeric(month),
+    epiweek = as.numeric(epiweek),
+    date = as.Date(date),
+    health = as.character(health),
+    sex = as.numeric(sex),
+    age = as.numeric(age),
+    source = as.character(source)
+  ) |>
+  rename(geocodmu = geocod) |>
+  mutate(geocoduf = as.numeric(substr(geocodmu, 0, 2))) |>
+  left_join(mun_reg_saude_449, by = c("geocodmu" = "code_muni")) |>
+  rename(geocodrs = codi_reg_saude) |>
+  relocate(c(geocoduf, geocodrs), .before = geocodmu)
+```
+
+```{r}
+if (dbExistsTable(con, Id(schema = schema, table = "sinan_chagas"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "sinan_chagas"))
+}
+
+dbWriteTable(
+  conn = con,
+  name = Id(schema = schema, table = "sinan_chagas"),
+  value = tmp_chagas_sinan
+)
+
+tbl(con, Id(schema = schema, table = "sinan_chagas")) |> tally()
+```
+
+## Database disconnect
+
+```{r}
+dbDisconnect(con)
+```
+
+## Session info
+
+```{r}
+session_info()
+```

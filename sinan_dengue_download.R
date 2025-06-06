@@ -5,10 +5,18 @@ library(arrow)
 library(glue)
 
 # Parameters
-years <- 2009:2024
+years <- 2000:2024
 
 # Download data
+files_list <- list.files(path = "../dados/sinan_dengue/")
+
 for (y in years) {
+  # Skip if file already exists
+  if (glue("sinan_dengue_{y}.parquet") %in% files_list) next
+
+  # Skip file with problem
+  if (y == 2008) next
+
   message(glue("Year: {y}"))
 
   tmp1 <- fetch_datasus(
@@ -58,7 +66,7 @@ for (y in years) {
 
   write_parquet(
     x = tmp2,
-    sink = glue("../dados/dengue_sinan/dengue_sinan_{y}.parquet")
+    sink = glue("../dados/sinan_dengue/sinan_dengue_{y}.parquet")
   )
   rm(tmp2)
 }

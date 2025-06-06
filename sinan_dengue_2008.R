@@ -21,5 +21,5 @@ tmp <- tmp |>
 
 write_parquet(
   x = tmp,
-  sink = "../dados/dengue_sinan/dengue_sinan_2008.parquet"
+  sink = "../dados/sinan_dengue/sinan_dengue_2008.parquet"
 )
