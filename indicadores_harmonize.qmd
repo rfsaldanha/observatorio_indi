@@ -185,7 +185,7 @@ indi_0019_res |>
 
 ```{r}
 write_parquet(
-  x = indi_0015_res,
+  x = indi_0014_res,
   sink = "../indicadores/indi_0014_munres_month_20002023.parquet"
 )
 

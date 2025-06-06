@@ -1,0 +1,159 @@
+---
+title: "Harmonize indicators preview"
+format:
+  html:
+    embed-resources: true
+---
+
+## Packages
+
+```{r}
+#| message: false
+library(tibble)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(arrow)
+library(sessioninfo)
+```
+
+## Municipalities list
+
+```{r}
+mun_codes <- tibble(
+  cod = c(330455, 251080, 150210),
+  mun_name = c("Rio de Janeiro, RJ", "Patos, PB", "Cametá, PA")
+)
+```
+
+## Read datasets
+
+```{r}
+indi_0014 <- read_parquet(
+  file = "../indicadores/indi_0014_munres_month_20002023.parquet"
+)
+indi_0015 <- read_parquet(
+  file = "../indicadores/indi_0015_munres_month_20002023.parquet"
+)
+indi_0016 <- read_parquet(
+  file = "../indicadores/indi_0016_munres_month_20002023.parquet"
+)
+indi_0017 <- read_parquet(
+  file = "../indicadores/indi_0017_munres_month_20002023.parquet"
+)
+indi_0018 <- read_parquet(
+  file = "../indicadores/indi_0018_munres_month_20002023.parquet"
+)
+indi_0019 <- read_parquet(
+  file = "../indicadores/indi_0019_munres_month_20002023.parquet"
+)
+```
+
+## Dengue mortality
+
+```{r}
+indi_0014 |>
+  right_join(mun_codes, by = "cod") |>
+  mutate(
+    date = as.Date(paste0(substr(date, 0, 4), "-", substr(date, 6, 7), "-01"))
+  ) |>
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  labs(
+    title = "Dengue mortality",
+    caption = "per 100,000 inhab."
+  ) +
+  facet_wrap(~mun_name)
+```
+
+## Dengue incidence
+
+```{r}
+indi_0015 |>
+  right_join(mun_codes, by = "cod") |>
+  mutate(
+    date = as.Date(paste0(substr(date, 0, 4), "-", substr(date, 6, 7), "-01"))
+  ) |>
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  labs(
+    title = "Dengue incidence",
+    caption = "per 100,000 inhab."
+  ) +
+  facet_wrap(~mun_name)
+```
+
+## Zika incidence
+
+```{r}
+indi_0016 |>
+  right_join(mun_codes, by = "cod") |>
+  mutate(
+    date = as.Date(paste0(substr(date, 0, 4), "-", substr(date, 6, 7), "-01"))
+  ) |>
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  labs(
+    title = "Zika incidence",
+    caption = "per 100,000 inhab."
+  ) +
+  facet_wrap(~mun_name)
+```
+
+## Chikungunya incidence
+
+```{r}
+indi_0017 |>
+  right_join(mun_codes, by = "cod") |>
+  mutate(
+    date = as.Date(paste0(substr(date, 0, 4), "-", substr(date, 6, 7), "-01"))
+  ) |>
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  labs(
+    title = "Chikungunya incidence",
+    caption = "per 100,000 inhab."
+  ) +
+  facet_wrap(~mun_name)
+```
+
+## Yellow fever incidence
+
+```{r}
+indi_0018 |>
+  right_join(mun_codes, by = "cod") |>
+  mutate(
+    date = as.Date(paste0(substr(date, 0, 4), "-", substr(date, 6, 7), "-01"))
+  ) |>
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  labs(
+    title = "Yellow fever incidence",
+    caption = "per 100,000 inhab."
+  ) +
+  facet_wrap(~mun_name)
+```
+
+## Chagas incidence
+
+```{r}
+indi_0019 |>
+  right_join(mun_codes, by = "cod") |>
+  mutate(
+    date = as.Date(paste0(substr(date, 0, 4), "-", substr(date, 6, 7), "-01"))
+  ) |>
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  labs(
+    title = "Chagas incidence",
+    caption = "per 100,000 inhab."
+  ) +
+  facet_wrap(~mun_name)
+```
+
+
+## Session info
+
+```{r}
+session_info()
+```
