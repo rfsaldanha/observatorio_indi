@@ -12,10 +12,14 @@ files_list <- list.files(path = "../dados/sinan_dengue/")
 
 for (y in years) {
   # Skip if file already exists
-  if (glue("sinan_dengue_{y}.parquet") %in% files_list) next
+  if (glue("sinan_dengue_{y}.parquet") %in% files_list) {
+    next
+  }
 
   # Skip file with problem
-  if (y == 2008) next
+  if (y == 2008) {
+    next
+  }
 
   message(glue("Year: {y}"))
 

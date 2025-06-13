@@ -43,11 +43,17 @@ files_list <- list.files(path = "../dados/sim/")
 for (uf in ufs) {
   for (y in years) {
     # Skip if file already exists
-    if (glue("sim_{uf}_{y}.parquet") %in% files_list) next
+    if (glue("sim_{uf}_{y}.parquet") %in% files_list) {
+      next
+    }
 
     # Skip file with problem
-    if (uf == "GO" & y == 2005) next
-    if (uf == "PA" & y == 2002) next
+    if (uf == "GO" & y == 2005) {
+      next
+    }
+    if (uf == "PA" & y == 2002) {
+      next
+    }
 
     message(glue("UF: {uf} Year: {y}"))
 
