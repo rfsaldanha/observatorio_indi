@@ -20,7 +20,7 @@ schema <- "eventos_saude_2"
 
 # Files list
 files_list <- list.files(
-  path = "../dados/sinan_dengue/",
+  path = "../dados/sinan_chikungunya/",
   pattern = "*.parquet",
   full.names = TRUE
 )
@@ -31,7 +31,7 @@ dataset <- open_dataset(sources = files_list)
 # Data preparation
 prep_dataset <- dataset |>
   # Filter confirmed cases only
-  filter(CLASSI_FIN %in% c("Dengue leve", "Dengue moderada", "Dengue grave")) |>
+  filter(CLASSI_FIN %in% c("Chikungunya")) |>
   # Select variables
   select(
     ID_MN_RESI,
@@ -58,18 +58,18 @@ prep_dataset <- dataset |>
   relocate(c(geocoduf, geocodrs, geocodmu), .before = date)
 
 ## Write to database
-if (dbExistsTable(con, Id(schema = schema, table = "sinan_dengue"))) {
-  dbRemoveTable(con, Id(schema = schema, table = "sinan_dengue"))
+if (dbExistsTable(con, Id(schema = schema, table = "sinan_chikungunya"))) {
+  dbRemoveTable(con, Id(schema = schema, table = "sinan_chikungunya"))
 }
 
 dbWriteTable(
   conn = con,
-  name = Id(schema = schema, table = "sinan_dengue"),
+  name = Id(schema = schema, table = "sinan_chikungunya"),
   value = prep_dataset |> collect()
 )
 
 ## Verify records
-tbl(con, Id(schema = schema, table = "sinan_dengue")) |> tally()
+tbl(con, Id(schema = schema, table = "sinan_chikungunya")) |> tally()
 
 ## Database disconnect
 dbDisconnect(con)

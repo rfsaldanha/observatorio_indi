@@ -39,6 +39,10 @@ prep_dataset <- dataset |>
     sex = SEXO,
     age = IDADEanos
   ) |>
+  # Age as numeric
+  # mutate(
+  #   age = as.numeric(age)
+  # ) |>
   # Filter out records with invalid municipality codes
   mutate(mn_nchar = nchar(CODMUNRES)) |>
   filter(mn_nchar == 6) |>
