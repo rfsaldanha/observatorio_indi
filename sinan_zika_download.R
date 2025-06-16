@@ -8,7 +8,14 @@ library(glue)
 years <- 2016:2024
 
 # Download data
+files_list <- list.files(path = "../dados/sinan_zika/")
+
 for (y in years) {
+  # Skip if file already exists
+  if (glue("sinan_zika_{y}.parquet") %in% files_list) {
+    next
+  }
+
   message(glue("Year: {y}"))
 
   tmp1 <- fetch_datasus(
